@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { authApi } from '../api';
 import { AuthStackParamList } from '../navigation/types';
+import Logo from '../components/Logo';
 
 type NavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -87,7 +88,7 @@ export default function LoginScreen() {
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 20 }}>
         <View className="items-center mb-10">
-          <Text className="text-5xl font-bold text-primary mb-2">ODA</Text>
+          <Logo height={64} />
         </View>
 
         <View className="w-full">
@@ -96,7 +97,8 @@ export default function LoginScreen() {
           <View className="mb-5">
             <Text className="text-sm font-semibold text-gray-800 mb-2">Email</Text>
             <TextInput
-              className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50"
+              className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50 text-gray-800"
+              placeholderTextColor="#9CA3AF"
               placeholder="Enter your email"
               value={email}
               onChangeText={(t) => { setEmail(t); setEmailNotVerified(false); }}
@@ -115,7 +117,8 @@ export default function LoginScreen() {
             </View>
             <View className="relative">
               <TextInput
-                className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50 pr-12"
+                className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50 text-gray-800 pr-12"
+                placeholderTextColor="#9CA3AF"
                 placeholder="Enter password"
                 value={password}
                 onChangeText={setPassword}

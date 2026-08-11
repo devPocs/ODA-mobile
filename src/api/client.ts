@@ -32,7 +32,14 @@ class ApiClient {
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
-        const message = error.response?.data?.message || error.message || 'An error occurred';
+        // Validator errors carry field-level detail in data.errors — surface the
+        // first one instead of the generic top-level "Validation failed" message.
+        const fieldErrors = error.response?.data?.data?.errors;
+        const detailMessage = Array.isArray(fieldErrors) && fieldErrors.length > 0
+          ? fieldErrors[0].message
+          : undefined;
+        const message =
+          detailMessage || error.response?.data?.message || error.message || 'An error occurred';
         return Promise.reject(new Error(message));
       }
     );

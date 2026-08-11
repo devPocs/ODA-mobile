@@ -140,7 +140,7 @@ export default function ProfileScreen() {
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="#8B2635" />
+        <ActivityIndicator size="large" color="#A13D3D" />
       </View>
     );
   }
@@ -269,7 +269,8 @@ export default function ProfileScreen() {
           <View className="mb-3">
             <Text className="text-xs text-gray-500 mb-1">Current Password</Text>
             <TextInput
-              className="border border-gray-200 rounded-lg p-3 text-sm bg-gray-50"
+              className="border border-gray-200 rounded-lg p-3 text-sm bg-gray-50 text-gray-800"
+              placeholderTextColor="#9CA3AF"
               placeholder="Enter current password"
               value={currentPassword}
               onChangeText={setCurrentPassword}
@@ -281,7 +282,8 @@ export default function ProfileScreen() {
           <View className="mb-3">
             <Text className="text-xs text-gray-500 mb-1">New Password</Text>
             <TextInput
-              className="border border-gray-200 rounded-lg p-3 text-sm bg-gray-50"
+              className="border border-gray-200 rounded-lg p-3 text-sm bg-gray-50 text-gray-800"
+              placeholderTextColor="#9CA3AF"
               placeholder="Enter new password"
               value={newPassword}
               onChangeText={setNewPassword}
@@ -293,7 +295,8 @@ export default function ProfileScreen() {
           <View className="mb-4">
             <Text className="text-xs text-gray-500 mb-1">Confirm New Password</Text>
             <TextInput
-              className="border border-gray-200 rounded-lg p-3 text-sm bg-gray-50"
+              className="border border-gray-200 rounded-lg p-3 text-sm bg-gray-50 text-gray-800"
+              placeholderTextColor="#9CA3AF"
               placeholder="Confirm new password"
               value={confirmPassword}
               onChangeText={setConfirmPassword}

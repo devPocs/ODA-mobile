@@ -64,7 +64,8 @@ export default function ForgotPasswordScreen() {
             <View className="mb-6">
               <Text className="text-sm font-semibold text-gray-800 mb-2">Email Address</Text>
               <TextInput
-                className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50"
+                className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50 text-gray-800"
+                placeholderTextColor="#9CA3AF"
                 placeholder="Enter your email"
                 value={email}
                 onChangeText={setEmail}

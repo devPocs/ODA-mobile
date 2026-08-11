@@ -71,7 +71,8 @@ export default function RequestDatabaseScreen() {
             <View className="mb-5">
               <Text className="text-sm font-semibold text-gray-800 mb-2">Name of Database *</Text>
               <TextInput
-                className="border border-gray-300 rounded-lg p-3 text-base bg-white"
+                className="border border-gray-300 rounded-lg p-3 text-base bg-white text-gray-800"
+                placeholderTextColor="#9CA3AF"
                 placeholder="e.g., PubMed, JSTOR"
                 value={name}
                 onChangeText={setName}
@@ -82,7 +83,8 @@ export default function RequestDatabaseScreen() {
             <View className="mb-5">
               <Text className="text-sm font-semibold text-gray-800 mb-2">Database URL *</Text>
               <TextInput
-                className="border border-gray-300 rounded-lg p-3 text-base bg-white"
+                className="border border-gray-300 rounded-lg p-3 text-base bg-white text-gray-800"
+                placeholderTextColor="#9CA3AF"
                 placeholder="https://example.com"
                 value={url}
                 onChangeText={setUrl}
@@ -95,7 +97,8 @@ export default function RequestDatabaseScreen() {
             <View className="mb-5">
               <Text className="text-sm font-semibold text-gray-800 mb-2">Description (Optional)</Text>
               <TextInput
-                className="border border-gray-300 rounded-lg p-3 text-base bg-white h-[100px] pt-3"
+                className="border border-gray-300 rounded-lg p-3 text-base bg-white text-gray-800 h-[100px] pt-3"
+                placeholderTextColor="#9CA3AF"
                 placeholder="Brief description of the database..."
                 value={description}
                 onChangeText={setDescription}

@@ -83,7 +83,8 @@ export default function OTPValidationScreen() {
           <View className="mb-6">
             <Text className="text-sm font-semibold text-gray-800 mb-2">OTP Code</Text>
             <TextInput
-              className="border border-gray-300 rounded-lg p-3 text-2xl bg-gray-50 text-center tracking-widest"
+              className="border border-gray-300 rounded-lg p-3 text-2xl bg-gray-50 text-gray-800 text-center tracking-widest"
+              placeholderTextColor="#9CA3AF"
               placeholder="000000"
               value={otp}
               onChangeText={(t) => setOtp(t.replace(/\D/g, '').slice(0, 6))}

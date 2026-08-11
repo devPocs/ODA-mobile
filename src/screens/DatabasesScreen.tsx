@@ -13,6 +13,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { databaseApi, authApi } from '../api';
 import { DatabaseItem } from '../types';
 import DatabaseCard from '../components/DatabaseCard';
+import Logo from '../components/Logo';
 
 export default function DatabasesScreen() {
   const [databases, setDatabases] = useState<DatabaseItem[]>([]);
@@ -143,7 +144,7 @@ export default function DatabasesScreen() {
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="#8B2635" />
+        <ActivityIndicator size="large" color="#A13D3D" />
       </View>
     );
   }
@@ -151,9 +152,9 @@ export default function DatabasesScreen() {
   return (
     <SafeAreaView className="flex-1 bg-gray-100" edges={['top']}>
       <View className="flex-row justify-between items-center px-5 py-4 bg-white border-b border-gray-200">
-        <View>
-          <Text className="text-2xl font-bold text-primary">ODA</Text>
-          <Text className="text-sm text-gray-600 mt-0.5">Databases</Text>
+        <View className="gap-1">
+          <Logo height={28} />
+          <Text className="text-sm text-gray-600">Databases</Text>
         </View>
         <TouchableOpacity onPress={handleLogout} className="p-2">
           <Text className="text-primary text-sm font-semibold">Logout</Text>
@@ -176,7 +177,7 @@ export default function DatabasesScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#8B2635"
+            tintColor="#A13D3D"
           />
         }
         ListEmptyComponent={

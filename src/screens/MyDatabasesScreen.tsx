@@ -91,7 +91,7 @@ export default function MyDatabasesScreen() {
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="#8B2635" />
+        <ActivityIndicator size="large" color="#A13D3D" />
       </View>
     );
   }
@@ -119,7 +119,7 @@ export default function MyDatabasesScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#8B2635"
+            tintColor="#A13D3D"
           />
         }
         ListEmptyComponent={

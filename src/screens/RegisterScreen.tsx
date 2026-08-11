@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { authApi } from '../api';
 import { AuthStackParamList } from '../navigation/types';
+import Logo from '../components/Logo';
 
 type NavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Register'>;
 
@@ -29,6 +30,16 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
     if (!firstName || !lastName || !email || !phone || !institution || !password) {
       Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters');
+      return;
+    }
+
+    if (phone.length < 10) {
+      Alert.alert('Error', 'Phone number must be at least 10 characters');
       return;
     }
 
@@ -54,8 +65,8 @@ export default function RegisterScreen() {
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 20 }}>
         <View className="items-center mb-10">
-          <Text className="text-5xl font-bold text-primary mb-2">ODA</Text>
-          <Text className="text-sm text-gray-500">Start your 7-day free trial</Text>
+          <Logo height={56} />
+          <Text className="text-sm text-gray-500 mt-2">Start your 7-day free trial</Text>
         </View>
 
         <View className="w-full">
@@ -65,7 +76,8 @@ export default function RegisterScreen() {
             <View className="flex-1">
               <Text className="text-sm font-semibold text-gray-800 mb-2">First Name</Text>
               <TextInput
-                className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50"
+                className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50 text-gray-800"
+                placeholderTextColor="#9CA3AF"
                 placeholder="First name"
                 value={firstName}
                 onChangeText={setFirstName}
@@ -75,7 +87,8 @@ export default function RegisterScreen() {
             <View className="flex-1">
               <Text className="text-sm font-semibold text-gray-800 mb-2">Last Name</Text>
               <TextInput
-                className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50"
+                className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50 text-gray-800"
+                placeholderTextColor="#9CA3AF"
                 placeholder="Last name"
                 value={lastName}
                 onChangeText={setLastName}
@@ -87,7 +100,8 @@ export default function RegisterScreen() {
           <View className="mb-5">
             <Text className="text-sm font-semibold text-gray-800 mb-2">Email</Text>
             <TextInput
-              className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50"
+              className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50 text-gray-800"
+              placeholderTextColor="#9CA3AF"
               placeholder="Enter your email"
               value={email}
               onChangeText={setEmail}
@@ -100,7 +114,8 @@ export default function RegisterScreen() {
           <View className="mb-5">
             <Text className="text-sm font-semibold text-gray-800 mb-2">Phone Number</Text>
             <TextInput
-              className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50"
+              className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50 text-gray-800"
+              placeholderTextColor="#9CA3AF"
               placeholder="Enter your phone number"
               value={phone}
               onChangeText={setPhone}
@@ -112,7 +127,8 @@ export default function RegisterScreen() {
           <View className="mb-5">
             <Text className="text-sm font-semibold text-gray-800 mb-2">Institution</Text>
             <TextInput
-              className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50"
+              className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50 text-gray-800"
+              placeholderTextColor="#9CA3AF"
               placeholder="Enter your institution"
               value={institution}
               onChangeText={setInstitution}
@@ -123,7 +139,8 @@ export default function RegisterScreen() {
           <View className="mb-5">
             <Text className="text-sm font-semibold text-gray-800 mb-2">Password</Text>
             <TextInput
-              className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50"
+              className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50 text-gray-800"
+              placeholderTextColor="#9CA3AF"
               placeholder="Create a password (min 6 characters)"
               value={password}
               onChangeText={setPassword}

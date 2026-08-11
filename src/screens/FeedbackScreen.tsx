@@ -78,7 +78,8 @@ export default function FeedbackScreen() {
             <View className="mb-5">
               <Text className="text-sm font-semibold text-gray-800 mb-2">Name *</Text>
               <TextInput
-                className="border border-gray-300 rounded-lg p-3 text-base bg-white"
+                className="border border-gray-300 rounded-lg p-3 text-base bg-white text-gray-800"
+                placeholderTextColor="#9CA3AF"
                 placeholder="Full name"
                 value={name}
                 onChangeText={setName}
@@ -89,7 +90,8 @@ export default function FeedbackScreen() {
             <View className="mb-5">
               <Text className="text-sm font-semibold text-gray-800 mb-2">Phone Number *</Text>
               <TextInput
-                className="border border-gray-300 rounded-lg p-3 text-base bg-white"
+                className="border border-gray-300 rounded-lg p-3 text-base bg-white text-gray-800"
+                placeholderTextColor="#9CA3AF"
                 placeholder="e.g. 08012345678"
                 value={phone}
                 onChangeText={setPhone}
@@ -101,7 +103,8 @@ export default function FeedbackScreen() {
             <View className="mb-5">
               <Text className="text-sm font-semibold text-gray-800 mb-2">Email Address *</Text>
               <TextInput
-                className="border border-gray-300 rounded-lg p-3 text-base bg-white"
+                className="border border-gray-300 rounded-lg p-3 text-base bg-white text-gray-800"
+                placeholderTextColor="#9CA3AF"
                 placeholder="you@example.com"
                 value={email}
                 onChangeText={setEmail}
@@ -116,7 +119,8 @@ export default function FeedbackScreen() {
                 Institution / Organization *
               </Text>
               <TextInput
-                className="border border-gray-300 rounded-lg p-3 text-base bg-white"
+                className="border border-gray-300 rounded-lg p-3 text-base bg-white text-gray-800"
+                placeholderTextColor="#9CA3AF"
                 placeholder="e.g. University of Lagos"
                 value={institution}
                 onChangeText={setInstitution}
@@ -127,7 +131,8 @@ export default function FeedbackScreen() {
             <View className="mb-5">
               <Text className="text-sm font-semibold text-gray-800 mb-2">Feedback / Complaint *</Text>
               <TextInput
-                className="border border-gray-300 rounded-lg p-3 text-base bg-white h-[120px] pt-3"
+                className="border border-gray-300 rounded-lg p-3 text-base bg-white text-gray-800 h-[120px] pt-3"
+                placeholderTextColor="#9CA3AF"
                 placeholder="Tell us what's on your mind..."
                 value={message}
                 onChangeText={setMessage}
