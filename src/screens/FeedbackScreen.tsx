@@ -1,0 +1,155 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { authApi, feedbackApi } from '../api';
+
+export default function FeedbackScreen() {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [institution, setInstitution] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    authApi.getProfile().then((response) => {
+      const user = response.data?.user;
+      if (!user) return;
+      const fullName = user.name || `${user.firstName} ${user.lastName}`.trim();
+      if (fullName) setName(fullName);
+      if (user.phone) setPhone(user.phone);
+      if (user.email) setEmail(user.email);
+      if (user.institution) setInstitution(user.institution);
+    }).catch(() => {});
+  }, []);
+
+  const handleSubmit = async () => {
+    if (!name || !phone || !email || !institution || !message) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await feedbackApi.submitFeedback({ name, phone, email, institution, message });
+
+      Alert.alert(
+        'Thank you',
+        'Your feedback has been submitted. Our team will review it shortly.',
+        [
+          {
+            text: 'OK',
+            onPress: () => setMessage(''),
+          },
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to submit feedback');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <SafeAreaView className="flex-1 bg-gray-100" edges={['top']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        className="flex-1"
+      >
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <View className="px-5 py-4 bg-white border-b border-gray-200">
+            <Text className="text-2xl font-bold text-gray-800">Feedback / Complaint</Text>
+            <Text className="text-sm text-gray-600 mt-1">
+              Your details are prefilled from your profile — edit them if you're submitting on
+              behalf of someone else.
+            </Text>
+          </View>
+
+          <View className="p-5">
+            <View className="mb-5">
+              <Text className="text-sm font-semibold text-gray-800 mb-2">Name *</Text>
+              <TextInput
+                className="border border-gray-300 rounded-lg p-3 text-base bg-white"
+                placeholder="Full name"
+                value={name}
+                onChangeText={setName}
+                editable={!loading}
+              />
+            </View>
+
+            <View className="mb-5">
+              <Text className="text-sm font-semibold text-gray-800 mb-2">Phone Number *</Text>
+              <TextInput
+                className="border border-gray-300 rounded-lg p-3 text-base bg-white"
+                placeholder="e.g. 08012345678"
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                editable={!loading}
+              />
+            </View>
+
+            <View className="mb-5">
+              <Text className="text-sm font-semibold text-gray-800 mb-2">Email Address *</Text>
+              <TextInput
+                className="border border-gray-300 rounded-lg p-3 text-base bg-white"
+                placeholder="you@example.com"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                editable={!loading}
+              />
+            </View>
+
+            <View className="mb-5">
+              <Text className="text-sm font-semibold text-gray-800 mb-2">
+                Institution / Organization *
+              </Text>
+              <TextInput
+                className="border border-gray-300 rounded-lg p-3 text-base bg-white"
+                placeholder="e.g. University of Lagos"
+                value={institution}
+                onChangeText={setInstitution}
+                editable={!loading}
+              />
+            </View>
+
+            <View className="mb-5">
+              <Text className="text-sm font-semibold text-gray-800 mb-2">Feedback / Complaint *</Text>
+              <TextInput
+                className="border border-gray-300 rounded-lg p-3 text-base bg-white h-[120px] pt-3"
+                placeholder="Tell us what's on your mind..."
+                value={message}
+                onChangeText={setMessage}
+                multiline
+                numberOfLines={5}
+                textAlignVertical="top"
+                editable={!loading}
+              />
+            </View>
+
+            <TouchableOpacity
+              className={`bg-primary p-4 rounded-lg items-center mt-2.5 ${loading ? 'opacity-60' : ''}`}
+              onPress={handleSubmit}
+              disabled={loading}
+            >
+              <Text className="text-white text-base font-semibold">
+                {loading ? 'Submitting...' : 'Submit Feedback'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
