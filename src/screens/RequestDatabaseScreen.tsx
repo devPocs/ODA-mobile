@@ -4,13 +4,14 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { databaseApi } from '../api';
+import Logo from '../components/Logo';
+import { toast } from '../utils/toast';
 
 export default function RequestDatabaseScreen() {
   const [name, setName] = useState('');
@@ -20,7 +21,7 @@ export default function RequestDatabaseScreen() {
 
   const handleSubmit = async () => {
     if (!name || !url) {
-      Alert.alert('Error', 'Please fill in database name and URL');
+      toast.error('Please fill in database name and URL');
       return;
     }
 
@@ -32,22 +33,12 @@ export default function RequestDatabaseScreen() {
         description: description || undefined,
       });
 
-      Alert.alert(
-        'Success',
-        'Database request submitted successfully. Our team will review it.',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              setName('');
-              setUrl('');
-              setDescription('');
-            },
-          },
-        ]
-      );
+      toast.success('Database request submitted successfully. Our team will review it.');
+      setName('');
+      setUrl('');
+      setDescription('');
     } catch (error) {
-      Alert.alert('Error', 'Failed to submit request');
+      toast.error('Failed to submit request');
     } finally {
       setLoading(false);
     }
@@ -60,9 +51,10 @@ export default function RequestDatabaseScreen() {
         className="flex-1"
       >
         <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-          <View className="px-5 py-4 bg-white border-b border-gray-200">
-            <Text className="text-2xl font-bold text-gray-800">Request a New Database</Text>
-            <Text className="text-sm text-gray-600 mt-1">
+          <View className="px-5 py-6 bg-white border-b border-gray-200">
+            <Logo height={70} />
+            <Text className="text-2xl font-bold text-gray-800 mt-3 mb-1">Request a New Database</Text>
+            <Text className="text-sm text-gray-600">
               Our team reviews and approves new entries regularly.
             </Text>
           </View>

@@ -4,12 +4,20 @@ import {
   UserDatabase,
   DatabaseRequest,
   RequestDatabaseData,
+  PaginationMeta,
 } from '../types';
 
+// Server caps the page size at 50 regardless of what's requested.
+const MAX_PAGE_LIMIT = 50;
+
 export const databaseApi = {
-  // Get all preloaded databases
-  async getPreloadedDatabases() {
-    return api.get<{ databases: DatabaseItem[] }>('/api/databases/preloaded');
+  // Get preloaded databases — paginated server-side (162+ total). `search`
+  // filters by name server-side, so pagination stays correct for the filtered set.
+  async getPreloadedDatabases(page = 1, limit = MAX_PAGE_LIMIT, search?: string) {
+    return api.get<{ databases: DatabaseItem[]; pagination: PaginationMeta }>(
+      '/api/databases/preloaded',
+      { params: { page, limit, ...(search ? { search } : {}) } }
+    );
   },
 
   // Get user's selected databases

@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ApiSuccessResponse, ApiError } from '../types';
 
 // Production API URL
-const API_BASE_URL = 'https://oda-ochre.vercel.app';
+const API_BASE_URL = 'https://oda-mono-be.vercel.app';
 
 class ApiClient {
   private client: AxiosInstance;

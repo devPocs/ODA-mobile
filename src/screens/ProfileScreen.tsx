@@ -14,6 +14,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { authApi } from '../api';
 import { UserProfile, TrialStatus } from '../types';
 import { MainStackParamList } from '../navigation/types';
+import Logo from '../components/Logo';
+import { toast } from '../utils/toast';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
 
@@ -73,7 +75,7 @@ export default function ProfileScreen() {
       if (profileResponse.data?.user) setProfile(profileResponse.data.user);
       if (statusResponse.data) setTrialStatus(statusResponse.data);
     } catch (error) {
-      Alert.alert('Error', `Failed to load profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Failed to load profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -81,27 +83,27 @@ export default function ProfileScreen() {
 
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all password fields');
+      toast.error('Please fill in all password fields');
       return;
     }
     if (newPassword !== confirmPassword) {
-      Alert.alert('Error', 'New passwords do not match');
+      toast.error('New passwords do not match');
       return;
     }
     if (newPassword.length < 6) {
-      Alert.alert('Error', 'New password must be at least 6 characters');
+      toast.error('New password must be at least 6 characters');
       return;
     }
 
     setChangingPassword(true);
     try {
       await authApi.changePassword(currentPassword, newPassword);
-      Alert.alert('Success', 'Password changed successfully');
+      toast.success('Password changed successfully');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to change password');
+      toast.error(error instanceof Error ? error.message : 'Failed to change password');
     } finally {
       setChangingPassword(false);
     }
@@ -171,7 +173,8 @@ export default function ProfileScreen() {
       <ScrollView>
         {/* Header */}
         <View className="bg-white items-center py-8 border-b border-gray-200">
-          <View className="w-24 h-24 rounded-full bg-primary justify-center items-center mb-4">
+          <Logo height={80} />
+          <View className="w-24 h-24 rounded-full bg-primary justify-center items-center mb-4 mt-4">
             <Text className="text-4xl font-bold text-white">
               {(profile.firstName || profile.name || '?').charAt(0).toUpperCase()}
             </Text>

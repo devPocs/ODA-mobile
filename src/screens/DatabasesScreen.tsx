@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
+  TextInput,
   FlatList,
   ActivityIndicator,
   Alert,
@@ -14,17 +15,28 @@ import { databaseApi, authApi } from '../api';
 import { DatabaseItem } from '../types';
 import DatabaseCard from '../components/DatabaseCard';
 import Logo from '../components/Logo';
+import { toast } from '../utils/toast';
+
+const PAGE_LIMIT = 50;
+const SEARCH_DEBOUNCE_MS = 400;
 
 export default function DatabasesScreen() {
   const [databases, setDatabases] = useState<DatabaseItem[]>([]);
   const [userDatabases, setUserDatabases] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [pageLoading, setPageLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
   const isFocused = useIsFocused();
   const isInitialMount = useRef(true);
+  const isInitialSearchMount = useRef(true);
 
   useEffect(() => {
-    loadDatabases();
+    loadInitialData();
   }, []);
 
   useEffect(() => {
@@ -40,29 +52,79 @@ export default function DatabasesScreen() {
     }
   }, [isFocused]);
 
-  const loadDatabases = async () => {
+  // Debounce the search box, then re-fetch page 1 for the new term
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setSearch(searchInput.trim());
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+  }, [searchInput]);
+
+  useEffect(() => {
+    if (isInitialSearchMount.current) {
+      isInitialSearchMount.current = false;
+      return;
+    }
+    fetchDatabasesPage(1, search);
+  }, [search]);
+
+  const fetchDatabasesPage = async (pageToLoad: number, searchTerm: string) => {
+    setPageLoading(true);
+    try {
+      const response = await databaseApi.getPreloadedDatabases(
+        pageToLoad,
+        PAGE_LIMIT,
+        searchTerm || undefined
+      );
+
+      if (response.data?.databases) {
+        setDatabases(response.data.databases);
+        setPage(response.data.pagination?.page ?? pageToLoad);
+        setTotalPages(response.data.pagination?.totalPages ?? 1);
+        setTotal(response.data.pagination?.total ?? response.data.databases.length);
+      }
+    } catch (error) {
+      toast.error('Failed to load databases');
+    } finally {
+      setPageLoading(false);
+    }
+  };
+
+  const applyUserDatabasesResponse = (userDbResponse: Awaited<ReturnType<typeof databaseApi.getUserDatabases>>) => {
+    if (userDbResponse.data?.databases) {
+      const userDbIds = userDbResponse.data.databases.map((db) => db.databaseId._id);
+      setUserDatabases(userDbIds);
+    }
+  };
+
+  const loadInitialData = async () => {
     try {
       const [dbResponse, userDbResponse] = await Promise.all([
-        databaseApi.getPreloadedDatabases(),
+        databaseApi.getPreloadedDatabases(1, PAGE_LIMIT),
         databaseApi.getUserDatabases(),
       ]);
 
       if (dbResponse.data?.databases) {
         setDatabases(dbResponse.data.databases);
+        setPage(dbResponse.data.pagination?.page ?? 1);
+        setTotalPages(dbResponse.data.pagination?.totalPages ?? 1);
+        setTotal(dbResponse.data.pagination?.total ?? dbResponse.data.databases.length);
       }
-
       if (userDbResponse.data?.databases) {
-        const userDbIds = userDbResponse.data.databases.map(
-          (db) => db.databaseId._id
-        );
-        setUserDatabases(userDbIds);
+        setUserDatabases(userDbResponse.data.databases.map((db) => db.databaseId._id));
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to load databases');
+      toast.error('Failed to load databases');
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
+  };
+
+  const goToPage = (pageToLoad: number) => {
+    if (pageToLoad < 1 || pageToLoad > totalPages || pageToLoad === page || pageLoading) {
+      return;
+    }
+    fetchDatabasesPage(pageToLoad, search);
   };
 
   const loadUserDatabasesList = async () => {
@@ -87,7 +149,7 @@ export default function DatabasesScreen() {
 
   const handleAddDatabase = async (database: DatabaseItem) => {
     if (userDatabases.includes(database._id)) {
-      Alert.alert('Info', 'Database already added to your list');
+      toast.info('Database already added to your list');
       return;
     }
 
@@ -100,25 +162,10 @@ export default function DatabasesScreen() {
       setUserDatabases([...userDatabases, database._id]);
       console.log('[Databases] Updated userDatabases state. Database added successfully');
 
-      Alert.alert(
-        'Success',
-        `'${database.name}' has been added to your databases!`,
-        [
-          {
-            text: 'View My Databases',
-            onPress: () => {
-              // User can manually navigate to My Databases tab
-            },
-          },
-          {
-            text: 'Add Another',
-            style: 'cancel',
-          },
-        ]
-      );
+      toast.success(`'${database.name}' has been added to your databases!`);
     } catch (error) {
       console.error('[Databases] Failed to add database:', error);
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to add database');
+      toast.error(error instanceof Error ? error.message : 'Failed to add database');
     }
   };
 
@@ -136,9 +183,19 @@ export default function DatabasesScreen() {
     ]);
   };
 
-  const onRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    loadDatabases();
+    try {
+      const [, userDbResponse] = await Promise.all([
+        fetchDatabasesPage(1, search),
+        databaseApi.getUserDatabases(),
+      ]);
+      applyUserDatabasesResponse(userDbResponse);
+    } catch (error) {
+      toast.error('Failed to refresh databases');
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   if (loading) {
@@ -151,14 +208,32 @@ export default function DatabasesScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100" edges={['top']}>
-      <View className="flex-row justify-between items-center px-5 py-4 bg-white border-b border-gray-200">
-        <View className="gap-1">
-          <Logo height={28} />
-          <Text className="text-sm text-gray-600">Databases</Text>
+      <View className="flex-row justify-between items-center px-5 pt-5 pb-4 bg-white border-b border-gray-200">
+        <View className="flex-row items-center gap-3 flex-1">
+          <Logo height={96} />
+          <View className="flex-1">
+            <Text className="text-xl font-bold text-gray-800">Databases</Text>
+            <Text className="text-xs text-gray-500 mt-0.5">
+              {total > 0 ? `${total} databases available` : 'Databases'}
+            </Text>
+          </View>
         </View>
         <TouchableOpacity onPress={handleLogout} className="p-2">
           <Text className="text-primary text-sm font-semibold">Logout</Text>
         </TouchableOpacity>
+      </View>
+
+      <View className="px-5 py-3 bg-white border-b border-gray-200">
+        <TextInput
+          className="border border-gray-300 rounded-lg px-4 py-2.5 text-base bg-gray-50 text-gray-800"
+          placeholderTextColor="#9CA3AF"
+          placeholder="Search databases..."
+          value={searchInput}
+          onChangeText={setSearchInput}
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="search"
+        />
       </View>
 
       <FlatList
@@ -171,8 +246,11 @@ export default function DatabasesScreen() {
             isAdded={userDatabases.includes(item._id)}
           />
         )}
-        contentContainerStyle={{ padding: 14 }}
+        contentContainerStyle={{ padding: 14, flexGrow: 1 }}
         numColumns={2}
+        removeClippedSubviews={false}
+        maxToRenderPerBatch={10}
+        updateCellsBatchingPeriod={50}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -182,10 +260,56 @@ export default function DatabasesScreen() {
         }
         ListEmptyComponent={
           <View className="p-10 items-center">
-            <Text className="text-base text-gray-600">No databases available</Text>
+            <Text className="text-base text-gray-600">
+              {pageLoading ? '' : 'No databases found'}
+            </Text>
           </View>
         }
       />
+
+      {totalPages > 0 && (
+        <View className="flex-row items-center justify-between px-5 py-3 bg-white border-t border-gray-200">
+          <TouchableOpacity
+            onPress={() => goToPage(page - 1)}
+            disabled={page <= 1 || pageLoading}
+            className={`px-4 py-2 rounded-lg border ${
+              page <= 1 || pageLoading ? 'border-gray-200' : 'border-primary'
+            }`}
+          >
+            <Text
+              className={`text-sm font-semibold ${
+                page <= 1 || pageLoading ? 'text-gray-300' : 'text-primary'
+              }`}
+            >
+              Previous
+            </Text>
+          </TouchableOpacity>
+
+          {pageLoading ? (
+            <ActivityIndicator size="small" color="#A13D3D" />
+          ) : (
+            <Text className="text-sm text-gray-600">
+              Page {page} of {totalPages}
+            </Text>
+          )}
+
+          <TouchableOpacity
+            onPress={() => goToPage(page + 1)}
+            disabled={page >= totalPages || pageLoading}
+            className={`px-4 py-2 rounded-lg border ${
+              page >= totalPages || pageLoading ? 'border-gray-200' : 'border-primary'
+            }`}
+          >
+            <Text
+              className={`text-sm font-semibold ${
+                page >= totalPages || pageLoading ? 'text-gray-300' : 'text-primary'
+              }`}
+            >
+              Next
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 }

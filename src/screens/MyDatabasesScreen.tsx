@@ -13,6 +13,8 @@ import { useIsFocused } from '@react-navigation/native';
 import { databaseApi } from '../api';
 import { UserDatabase } from '../types';
 import MyDatabaseCard from '../components/MyDatabaseCard';
+import Logo from '../components/Logo';
+import { toast } from '../utils/toast';
 
 export default function MyDatabasesScreen() {
   const [databases, setDatabases] = useState<UserDatabase[]>([]);
@@ -42,7 +44,7 @@ export default function MyDatabasesScreen() {
       }
     } catch (error) {
       console.error('[MyDatabases] Error loading databases:', error);
-      Alert.alert('Error', 'Failed to load your databases');
+      toast.error('Failed to load your databases');
       setDatabases([]);
     } finally {
       setLoading(false);
@@ -60,10 +62,10 @@ export default function MyDatabasesScreen() {
           try {
             await databaseApi.removeUserDatabase(database._id);
             setDatabases(databases.filter((db) => db._id !== database._id));
-            Alert.alert('Success', `'${database.databaseId.name}' removed from your databases`);
+            toast.success(`'${database.databaseId.name}' removed from your databases`);
           } catch (error) {
             console.error('Failed to remove database:', error);
-            Alert.alert('Error', 'Failed to remove database');
+            toast.error('Failed to remove database');
           }
         },
       },
@@ -76,10 +78,10 @@ export default function MyDatabasesScreen() {
       if (supported) {
         await Linking.openURL(url);
       } else {
-        Alert.alert('Error', 'Cannot open this URL');
+        toast.error('Cannot open this URL');
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to open database');
+      toast.error('Failed to open database');
     }
   };
 
@@ -98,9 +100,10 @@ export default function MyDatabasesScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100" edges={['top']}>
-      <View className="px-5 py-4 bg-white border-b border-gray-200">
-        <Text className="text-2xl font-bold text-gray-800">My Databases</Text>
-        <Text className="text-sm text-gray-600 mt-1">{databases.length} databases</Text>
+      <View className="px-5 py-6 bg-white border-b border-gray-200">
+        <Logo height={70} />
+        <Text className="text-2xl font-bold text-gray-800 mt-3 mb-1">My Databases</Text>
+        <Text className="text-sm text-gray-600">{databases.length} databases</Text>
       </View>
 
       <FlatList
@@ -113,8 +116,11 @@ export default function MyDatabasesScreen() {
             onOpenPress={handleOpenDatabase}
           />
         )}
-        contentContainerStyle={{ padding: 14 }}
+        contentContainerStyle={{ padding: 14, flexGrow: 1 }}
         numColumns={2}
+        removeClippedSubviews={false}
+        maxToRenderPerBatch={10}
+        updateCellsBatchingPeriod={50}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

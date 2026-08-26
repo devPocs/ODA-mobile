@@ -1,20 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   Linking,
-  Alert,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MainStackParamList } from '../navigation/types';
+import Logo from '../components/Logo';
+import { toast } from '../utils/toast';
+import { paymentApi } from '../api';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'Subscribe'>;
-
-const WEB_SUBSCRIBE_URL = 'https://oda-ochre.vercel.app/subscribe';
 
 const features = [
   '365-day full access',
@@ -26,19 +26,37 @@ const features = [
 
 export default function SubscribeScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const [initializing, setInitializing] = useState(false);
 
   const handlePay = async () => {
-    const supported = await Linking.canOpenURL(WEB_SUBSCRIBE_URL);
-    if (supported) {
-      await Linking.openURL(WEB_SUBSCRIBE_URL);
-    } else {
-      Alert.alert('Error', 'Unable to open payment page');
+    setInitializing(true);
+    try {
+      const response = await paymentApi.initialize();
+      const authorizationUrl = response.data?.authorization_url;
+      if (!authorizationUrl) {
+        toast.error('Payment could not be started. Please try again.');
+        return;
+      }
+
+      const supported = await Linking.canOpenURL(authorizationUrl);
+      if (supported) {
+        await Linking.openURL(authorizationUrl);
+      } else {
+        toast.error('Unable to open the Paystack payment page');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to start payment');
+    } finally {
+      setInitializing(false);
     }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100" edges={['top']}>
       <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20 }}>
+        <View className="items-center mb-6">
+          <Logo height={72} />
+        </View>
         <TouchableOpacity className="mb-6" onPress={() => navigation.goBack()}>
           <Text className="text-primary font-semibold">← Back</Text>
         </TouchableOpacity>
@@ -65,10 +83,13 @@ export default function SubscribeScreen() {
 
         {/* Pay Button */}
         <TouchableOpacity
-          className="bg-primary py-4 rounded-xl items-center mb-4"
+          className={`bg-primary py-4 rounded-xl items-center mb-4 ${initializing ? 'opacity-60' : ''}`}
           onPress={handlePay}
+          disabled={initializing}
         >
-          <Text className="text-white text-base font-bold">Pay ₦1,000 via Browser</Text>
+          <Text className="text-white text-base font-bold">
+            {initializing ? 'Starting payment...' : 'Pay ₦1,000 with Paystack'}
+          </Text>
         </TouchableOpacity>
 
         {/* Already paid section */}

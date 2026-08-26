@@ -17,6 +17,12 @@ interface DatabaseCardProps {
 const { width: screenWidth } = Dimensions.get('window');
 const cardWidth = (screenWidth - 28 - 8) / 2; // (screen - padding - gap) / 2 columns
 
+function getInitials(name: string) {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
+
 export default function DatabaseCard({ database, onAddPress, isAdded }: DatabaseCardProps) {
   return (
     <View
@@ -35,8 +41,8 @@ export default function DatabaseCard({ database, onAddPress, isAdded }: Database
                 resizeMode="contain"
               />
             ) : (
-              <View className="w-full h-full rounded-lg bg-primary justify-center items-center">
-                <Text className="text-white text-2xl font-bold">{database.name.charAt(0)}</Text>
+              <View className="w-full h-full rounded-full bg-primary justify-center items-center">
+                <Text className="text-white text-lg font-bold">{getInitials(database.name)}</Text>
               </View>
             )}
           </View>

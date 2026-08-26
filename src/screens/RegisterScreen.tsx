@@ -1,19 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { authApi } from '../api';
+import { authApi, institutionsApi } from '../api';
 import { AuthStackParamList } from '../navigation/types';
+import { Institution } from '../types';
 import Logo from '../components/Logo';
+import InstitutionPicker from '../components/InstitutionPicker';
+import { toast } from '../utils/toast';
 
 type NavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Register'>;
 
@@ -26,33 +28,54 @@ export default function RegisterScreen() {
   const [institution, setInstitution] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [institutionsLoading, setInstitutionsLoading] = useState(true);
+
+  useEffect(() => {
+    institutionsApi
+      .getAll()
+      .then((response) => {
+        setInstitutions(response.data?.institutions || []);
+      })
+      .catch(() => {
+        toast.error('Failed to load institutions list');
+      })
+      .finally(() => setInstitutionsLoading(false));
+  }, []);
 
   const handleRegister = async () => {
-    if (!firstName || !lastName || !email || !phone || !institution || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+    if (
+      !firstName.trim() ||
+      !lastName.trim() ||
+      !email.trim() ||
+      !phone.trim() ||
+      !institution.trim() ||
+      !password
+    ) {
+      toast.error('Please fill in all fields');
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      toast.error('Password must be at least 6 characters');
       return;
     }
 
     if (phone.length < 10) {
-      Alert.alert('Error', 'Phone number must be at least 10 characters');
+      toast.error('Phone number must be at least 10 characters');
       return;
     }
 
     setLoading(true);
     try {
       await authApi.register({ firstName, lastName, email, phone, institution, password });
-      Alert.alert(
-        'Account Created!',
+      toast.success(
         'A verification email has been sent to your inbox. Please verify your email before logging in.',
-        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+        'Account Created!'
       );
+      navigation.navigate('Login');
     } catch (error) {
-      Alert.alert('Registration Failed', error instanceof Error ? error.message : 'An error occurred');
+      toast.error(error instanceof Error ? error.message : 'An error occurred', 'Registration Failed');
     } finally {
       setLoading(false);
     }
@@ -65,7 +88,7 @@ export default function RegisterScreen() {
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 20 }}>
         <View className="items-center mb-10">
-          <Logo height={56} />
+          <Logo height={88} />
           <Text className="text-sm text-gray-500 mt-2">Start your 7-day free trial</Text>
         </View>
 
@@ -126,13 +149,12 @@ export default function RegisterScreen() {
 
           <View className="mb-5">
             <Text className="text-sm font-semibold text-gray-800 mb-2">Institution</Text>
-            <TextInput
-              className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50 text-gray-800"
-              placeholderTextColor="#9CA3AF"
-              placeholder="Enter your institution"
+            <InstitutionPicker
+              institutions={institutions}
               value={institution}
-              onChangeText={setInstitution}
-              editable={!loading}
+              onSelect={setInstitution}
+              loading={institutionsLoading}
+              disabled={loading}
             />
           </View>
 

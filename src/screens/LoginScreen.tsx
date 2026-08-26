@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -14,6 +13,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { authApi } from '../api';
 import { AuthStackParamList } from '../navigation/types';
 import Logo from '../components/Logo';
+import { toast } from '../utils/toast';
 
 type NavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -43,7 +43,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter email and password');
+      toast.error('Please enter email and password');
       return;
     }
 
@@ -57,7 +57,7 @@ export default function LoginScreen() {
       if (message === 'EMAIL_NOT_VERIFIED') {
         setEmailNotVerified(true);
       } else {
-        Alert.alert('Login Failed', message);
+        toast.error(message, 'Login Failed');
       }
     } finally {
       setLoading(false);
@@ -66,16 +66,16 @@ export default function LoginScreen() {
 
   const handleResendVerification = async () => {
     if (!email) {
-      Alert.alert('Error', 'Enter your email address above first');
+      toast.error('Enter your email address above first');
       return;
     }
     setIsResending(true);
     try {
       await authApi.resendVerificationEmail(email);
-      Alert.alert('Email Sent', 'Verification email sent. Check your inbox.');
+      toast.success('Verification email sent. Check your inbox.', 'Email Sent');
       startCooldown();
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to resend email');
+      toast.error(error instanceof Error ? error.message : 'Failed to resend email');
     } finally {
       setIsResending(false);
     }
@@ -88,7 +88,7 @@ export default function LoginScreen() {
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 20 }}>
         <View className="items-center mb-10">
-          <Logo height={64} />
+          <Logo height={96} />
         </View>
 
         <View className="w-full">

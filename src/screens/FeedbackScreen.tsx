@@ -4,13 +4,16 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { authApi, feedbackApi } from '../api';
+import { authApi, feedbackApi, institutionsApi } from '../api';
+import { Institution } from '../types';
+import Logo from '../components/Logo';
+import InstitutionPicker from '../components/InstitutionPicker';
+import { toast } from '../utils/toast';
 
 export default function FeedbackScreen() {
   const [name, setName] = useState('');
@@ -19,6 +22,8 @@ export default function FeedbackScreen() {
   const [institution, setInstitution] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [institutionsLoading, setInstitutionsLoading] = useState(true);
 
   useEffect(() => {
     authApi.getProfile().then((response) => {
@@ -30,11 +35,17 @@ export default function FeedbackScreen() {
       if (user.email) setEmail(user.email);
       if (user.institution) setInstitution(user.institution);
     }).catch(() => {});
+
+    institutionsApi
+      .getAll()
+      .then((response) => setInstitutions(response.data?.institutions || []))
+      .catch(() => toast.error('Failed to load institutions list'))
+      .finally(() => setInstitutionsLoading(false));
   }, []);
 
   const handleSubmit = async () => {
     if (!name || !phone || !email || !institution || !message) {
-      Alert.alert('Error', 'Please fill in all fields');
+      toast.error('Please fill in all fields');
       return;
     }
 
@@ -42,18 +53,10 @@ export default function FeedbackScreen() {
     try {
       await feedbackApi.submitFeedback({ name, phone, email, institution, message });
 
-      Alert.alert(
-        'Thank you',
-        'Your feedback has been submitted. Our team will review it shortly.',
-        [
-          {
-            text: 'OK',
-            onPress: () => setMessage(''),
-          },
-        ]
-      );
+      toast.success('Your feedback has been submitted. Our team will review it shortly.', 'Thank you');
+      setMessage('');
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to submit feedback');
+      toast.error(error instanceof Error ? error.message : 'Failed to submit feedback');
     } finally {
       setLoading(false);
     }
@@ -67,7 +70,8 @@ export default function FeedbackScreen() {
       >
         <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
           <View className="px-5 py-4 bg-white border-b border-gray-200">
-            <Text className="text-2xl font-bold text-gray-800">Feedback / Complaint</Text>
+            <Logo height={40} />
+            <Text className="text-2xl font-bold text-gray-800 mt-2">Feedback / Complaint</Text>
             <Text className="text-sm text-gray-600 mt-1">
               Your details are prefilled from your profile — edit them if you're submitting on
               behalf of someone else.
@@ -118,13 +122,12 @@ export default function FeedbackScreen() {
               <Text className="text-sm font-semibold text-gray-800 mb-2">
                 Institution / Organization *
               </Text>
-              <TextInput
-                className="border border-gray-300 rounded-lg p-3 text-base bg-white text-gray-800"
-                placeholderTextColor="#9CA3AF"
-                placeholder="e.g. University of Lagos"
+              <InstitutionPicker
+                institutions={institutions}
                 value={institution}
-                onChangeText={setInstitution}
-                editable={!loading}
+                onSelect={setInstitution}
+                loading={institutionsLoading}
+                disabled={loading}
               />
             </View>
 

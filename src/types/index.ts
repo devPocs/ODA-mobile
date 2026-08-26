@@ -69,6 +69,14 @@ export interface LoginData {
 }
 
 // Database Types
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasMore: boolean;
+}
+
 export interface DatabaseItem {
   _id: string;
   name: string;
@@ -122,6 +130,22 @@ export interface FeedbackData {
   email: string;
   institution: string;
   message: string;
+}
+
+// Institution — matches GET /api/institutions response
+export interface Institution {
+  _id: string;
+  name: string;
+  code?: string;
+  country: string;
+  type: string;
+}
+
+// Payment — matches POST /api/payment/initialize response (Paystack initialize-transaction shape)
+export interface PaymentInitResponse {
+  authorization_url: string;
+  access_code: string;
+  reference: string;
 }
 
 // Trial / Subscription Status — matches GET /api/auth/trial-status response

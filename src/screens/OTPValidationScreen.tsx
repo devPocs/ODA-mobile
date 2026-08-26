@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -14,6 +13,8 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { authApi } from '../api';
 import { MainStackParamList } from '../navigation/types';
+import Logo from '../components/Logo';
+import { toast } from '../utils/toast';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList, 'OTPValidation'>;
 
@@ -25,7 +26,7 @@ export default function OTPValidationScreen() {
 
   const handleValidate = async () => {
     if (!otp || otp.length !== 6) {
-      Alert.alert('Error', 'Please enter the 6-digit OTP from your email');
+      toast.error('Please enter the 6-digit OTP from your email');
       return;
     }
 
@@ -34,7 +35,7 @@ export default function OTPValidationScreen() {
       await authApi.validateOTP(otp);
       setValidated(true);
     } catch (error) {
-      Alert.alert('Invalid OTP', error instanceof Error ? error.message : 'Invalid or expired OTP. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Invalid or expired OTP. Please try again.', 'Invalid OTP');
     } finally {
       setLoading(false);
     }
@@ -44,7 +45,8 @@ export default function OTPValidationScreen() {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['top']}>
         <View className="flex-1 justify-center items-center p-8">
-          <View className="w-20 h-20 rounded-full bg-green-100 items-center justify-center mb-6">
+          <Logo height={88} />
+          <View className="w-20 h-20 rounded-full bg-green-100 items-center justify-center mb-6 mt-6">
             <Text className="text-4xl">🎉</Text>
           </View>
           <Text className="text-2xl font-bold text-gray-800 mb-3 text-center">
@@ -71,6 +73,9 @@ export default function OTPValidationScreen() {
         className="flex-1"
       >
         <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20 }}>
+          <View className="items-center mb-8">
+            <Logo height={88} />
+          </View>
           <TouchableOpacity className="mb-8" onPress={() => navigation.goBack()}>
             <Text className="text-primary font-semibold">← Back</Text>
           </TouchableOpacity>

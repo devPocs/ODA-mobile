@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -13,6 +12,8 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { api } from '../api/client';
 import { AuthStackParamList } from '../navigation/types';
+import Logo from '../components/Logo';
+import { toast } from '../utils/toast';
 
 type NavigationProp = NativeStackNavigationProp<AuthStackParamList, 'ForgotPassword'>;
 
@@ -24,7 +25,7 @@ export default function ForgotPasswordScreen() {
 
   const handleSubmit = async () => {
     if (!email) {
-      Alert.alert('Error', 'Please enter your email address');
+      toast.error('Please enter your email address');
       return;
     }
 
@@ -46,6 +47,9 @@ export default function ForgotPasswordScreen() {
       className="flex-1 bg-white"
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 20 }}>
+        <View className="items-center mb-8">
+          <Logo height={88} />
+        </View>
         <TouchableOpacity
           className="mb-8"
           onPress={() => navigation.goBack()}
