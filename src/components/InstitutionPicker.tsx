@@ -9,6 +9,7 @@ interface InstitutionPickerProps {
   onSelect: (name: string) => void;
   loading?: boolean;
   disabled?: boolean;
+  error?: boolean;
 }
 
 export default function InstitutionPicker({
@@ -17,6 +18,7 @@ export default function InstitutionPicker({
   onSelect,
   loading,
   disabled,
+  error,
 }: InstitutionPickerProps) {
   const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState('');
@@ -30,7 +32,7 @@ export default function InstitutionPicker({
   return (
     <>
       <TouchableOpacity
-        className="border border-gray-300 rounded-lg p-3 bg-gray-50"
+        className={`border rounded-lg p-3 bg-gray-50 ${error ? 'border-red-500' : 'border-gray-300'}`}
         onPress={() => setVisible(true)}
         disabled={disabled || loading}
       >

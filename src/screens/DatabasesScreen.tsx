@@ -8,6 +8,7 @@ import {
   Alert,
   RefreshControl,
   TouchableOpacity,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
@@ -28,7 +29,6 @@ export default function DatabasesScreen() {
   const [pageLoading, setPageLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const isFocused = useIsFocused();
@@ -81,7 +81,6 @@ export default function DatabasesScreen() {
         setDatabases(response.data.databases);
         setPage(response.data.pagination?.page ?? pageToLoad);
         setTotalPages(response.data.pagination?.totalPages ?? 1);
-        setTotal(response.data.pagination?.total ?? response.data.databases.length);
       }
     } catch (error) {
       toast.error('Failed to load databases');
@@ -108,7 +107,6 @@ export default function DatabasesScreen() {
         setDatabases(dbResponse.data.databases);
         setPage(dbResponse.data.pagination?.page ?? 1);
         setTotalPages(dbResponse.data.pagination?.totalPages ?? 1);
-        setTotal(dbResponse.data.pagination?.total ?? dbResponse.data.databases.length);
       }
       if (userDbResponse.data?.databases) {
         setUserDatabases(userDbResponse.data.databases.map((db) => db.databaseId._id));
@@ -144,6 +142,19 @@ export default function DatabasesScreen() {
       }
     } catch (error) {
       console.error('[Databases] Failed to load user databases:', error);
+    }
+  };
+
+  const handleVisitDatabase = async (database: DatabaseItem) => {
+    try {
+      const supported = await Linking.canOpenURL(database.url);
+      if (supported) {
+        await Linking.openURL(database.url);
+      } else {
+        toast.error('Cannot open this URL');
+      }
+    } catch (error) {
+      toast.error('Failed to open database');
     }
   };
 
@@ -213,9 +224,7 @@ export default function DatabasesScreen() {
           <Logo height={96} />
           <View className="flex-1">
             <Text className="text-xl font-bold text-gray-800">Databases</Text>
-            <Text className="text-xs text-gray-500 mt-0.5">
-              {total > 0 ? `${total} databases available` : 'Databases'}
-            </Text>
+            <Text className="text-xs text-gray-500 mt-0.5">Access to curated databases</Text>
           </View>
         </View>
         <TouchableOpacity onPress={handleLogout} className="p-2">
@@ -243,6 +252,7 @@ export default function DatabasesScreen() {
           <DatabaseCard
             database={item}
             onAddPress={handleAddDatabase}
+            onVisitPress={handleVisitDatabase}
             isAdded={userDatabases.includes(item._id)}
           />
         )}

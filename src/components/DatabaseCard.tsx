@@ -11,6 +11,7 @@ import { DatabaseItem } from '../types';
 interface DatabaseCardProps {
   database: DatabaseItem;
   onAddPress: (database: DatabaseItem) => void;
+  onVisitPress: (database: DatabaseItem) => void;
   isAdded?: boolean;
 }
 
@@ -23,7 +24,7 @@ function getInitials(name: string) {
   return (words[0][0] + words[1][0]).toUpperCase();
 }
 
-export default function DatabaseCard({ database, onAddPress, isAdded }: DatabaseCardProps) {
+export default function DatabaseCard({ database, onAddPress, onVisitPress, isAdded }: DatabaseCardProps) {
   return (
     <View
       className="bg-white rounded-xl p-3 mb-4 shadow-sm border border-gray-100 mx-1"
@@ -62,6 +63,12 @@ export default function DatabaseCard({ database, onAddPress, isAdded }: Database
             )}
           </View>
         </View>
+
+        {database.url && (
+          <TouchableOpacity onPress={() => onVisitPress(database)} className="mt-2">
+            <Text className="text-[10px] text-blue-600 font-medium">Visit Database</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Button always at bottom */}
