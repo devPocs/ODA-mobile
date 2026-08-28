@@ -102,7 +102,7 @@ export default function RegisterScreen() {
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 20 }}>
         <View className="items-center mb-10">
-          <Logo height={88} />
+          <Logo height={88} showTagline />
           <Text className="text-sm text-gray-500 mt-2">Start your 7-day free trial</Text>
         </View>
 

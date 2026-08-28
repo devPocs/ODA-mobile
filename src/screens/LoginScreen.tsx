@@ -88,7 +88,7 @@ export default function LoginScreen() {
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 20 }}>
         <View className="items-center mb-10">
-          <Logo height={96} />
+          <Logo height={96} showTagline />
         </View>
 
         <View className="w-full">

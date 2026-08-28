@@ -48,7 +48,7 @@ export default function ForgotPasswordScreen() {
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 20 }}>
         <View className="items-center mb-8">
-          <Logo height={88} />
+          <Logo height={88} showTagline />
         </View>
         <TouchableOpacity
           className="mb-8"
