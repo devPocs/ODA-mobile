@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   Linking,
   ScrollView,
+  AppState,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -27,20 +28,52 @@ const features = [
 export default function SubscribeScreen() {
   const navigation = useNavigation<NavigationProp>();
   const [initializing, setInitializing] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  // Paystack opens in the external browser, so there's no deep link to catch
+  // the redirect — we track the pending transaction ourselves and verify it
+  // the moment the user switches back to the app.
+  const pendingTransactionId = useRef<string | null>(null);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active' && pendingTransactionId.current) {
+        const transactionId = pendingTransactionId.current;
+        pendingTransactionId.current = null;
+        verifyPayment(transactionId);
+      }
+    });
+    return () => subscription.remove();
+  }, []);
+
+  const verifyPayment = async (transactionId: string) => {
+    setVerifying(true);
+    try {
+      await paymentApi.verify(transactionId);
+      toast.success('Your OTP has been sent to your registered email.', 'Payment Successful!');
+      navigation.navigate('OTPValidation');
+    } catch {
+      // Not necessarily an error — the user may have just glanced at the app
+      // without finishing checkout yet. The webhook (or the "Enter OTP"
+      // fallback below, once the confirmation email arrives) still covers it.
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const handlePay = async () => {
     setInitializing(true);
     try {
       const response = await paymentApi.initialize();
-      const authorizationUrl = response.data?.authorization_url;
-      if (!authorizationUrl) {
+      const { transactionId, redirectUrl } = response.data || {};
+      if (!redirectUrl || !transactionId) {
         toast.error('Payment could not be started. Please try again.');
         return;
       }
 
-      const supported = await Linking.canOpenURL(authorizationUrl);
+      const supported = await Linking.canOpenURL(redirectUrl);
       if (supported) {
-        await Linking.openURL(authorizationUrl);
+        pendingTransactionId.current = transactionId;
+        await Linking.openURL(redirectUrl);
       } else {
         toast.error('Unable to open the Paystack payment page');
       }
@@ -83,12 +116,12 @@ export default function SubscribeScreen() {
 
         {/* Pay Button */}
         <TouchableOpacity
-          className={`bg-primary py-4 rounded-xl items-center mb-4 ${initializing ? 'opacity-60' : ''}`}
+          className={`bg-primary py-4 rounded-xl items-center mb-4 ${(initializing || verifying) ? 'opacity-60' : ''}`}
           onPress={handlePay}
-          disabled={initializing}
+          disabled={initializing || verifying}
         >
           <Text className="text-white text-base font-bold">
-            {initializing ? 'Starting payment...' : 'Pay ₦1,000 with Paystack'}
+            {verifying ? 'Confirming payment...' : initializing ? 'Starting payment...' : 'Pay ₦1,000 with Paystack'}
           </Text>
         </TouchableOpacity>
 

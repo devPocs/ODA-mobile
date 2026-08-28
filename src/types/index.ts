@@ -141,11 +141,12 @@ export interface Institution {
   type: string;
 }
 
-// Payment — matches POST /api/payment/initialize response (Paystack initialize-transaction shape)
+// Payment — matches POST /api/payment/create-intent response
 export interface PaymentInitResponse {
-  authorization_url: string;
-  access_code: string;
-  reference: string;
+  transactionId: string;
+  redirectUrl: string;
+  gateway: string;
+  amount: number;
 }
 
 // Trial / Subscription Status — matches GET /api/auth/trial-status response
