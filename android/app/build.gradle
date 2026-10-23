@@ -61,7 +61,7 @@ react {
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
  */
-def enableProguardInReleaseBuilds = false
+def enableProguardInReleaseBuilds = true
 
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
@@ -141,8 +141,11 @@ android {
             // Falls back to the debug key so local release builds still run;
             // only builds signed with the upload key can go to Play.
             signingConfig signingConfigs.findByName('release') ?: signingConfigs.debug
+            // R8 shrinks and obfuscates the DEX; Play flags releases below its
+            // optimization threshold.
             minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            shrinkResources enableProguardInReleaseBuilds
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
 }

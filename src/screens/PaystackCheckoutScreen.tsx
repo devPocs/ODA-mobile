@@ -93,7 +93,7 @@ export default function PaystackCheckoutScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
       <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100">
         <Text className="text-base font-bold text-gray-800">Secure payment</Text>
         <TouchableOpacity onPress={confirmPayment}>

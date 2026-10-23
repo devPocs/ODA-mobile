@@ -8,3 +8,8 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add any project specific keep options here:
+
+# Keep line numbers so Play Console stack traces can be deobfuscated with the
+# uploaded mapping.txt.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile

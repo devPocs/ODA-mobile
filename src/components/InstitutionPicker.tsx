@@ -45,7 +45,7 @@ export default function InstitutionPicker({
       </TouchableOpacity>
 
       <Modal visible={visible} animationType="slide" onRequestClose={() => setVisible(false)}>
-        <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+        <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
           <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
             <Text className="text-lg font-bold text-gray-800">Select Institution</Text>
             <TouchableOpacity onPress={() => setVisible(false)}>

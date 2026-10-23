@@ -56,7 +56,7 @@ export default function OTPValidationScreen() {
 
   if (validated) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+      <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
         <View className="flex-1 justify-center items-center p-8">
           <Logo height={88} />
           <View className="w-20 h-20 rounded-full bg-green-100 items-center justify-center mb-6 mt-6">
@@ -80,7 +80,7 @@ export default function OTPValidationScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"

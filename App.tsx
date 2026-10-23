@@ -8,7 +8,7 @@ import './global.css';
 function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle="dark-content" />
       <RootNavigator />
       <Toast />
     </SafeAreaProvider>

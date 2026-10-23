@@ -66,7 +66,7 @@ export default function SubscribeScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-gray-100" edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20 }}>
         <View className="items-center mb-6">
           <Logo height={72} />
