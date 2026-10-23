@@ -20,6 +20,7 @@ export type MainTabParamList = {
 export type MainStackParamList = {
   Tabs: NavigatorScreenParams<MainTabParamList>;
   Subscribe: undefined;
+  PaystackCheckout: { redirectUrl: string; transactionId: string };
   OTPValidation: undefined;
 };
 

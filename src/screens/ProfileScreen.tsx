@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,12 +9,13 @@ import {
   TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { authApi } from '../api';
 import { UserProfile, TrialStatus } from '../types';
 import { MainStackParamList } from '../navigation/types';
 import Logo from '../components/Logo';
+import { isAwaitingOTP } from '../components/AccessBanner';
 import { toast } from '../utils/toast';
 
 type NavigationProp = NativeStackNavigationProp<MainStackParamList>;
@@ -33,9 +34,12 @@ export default function ProfileScreen() {
   const [showPasswords, setShowPasswords] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+  // Reload on focus so the status is current after paying or entering the OTP
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [])
+  );
 
   useEffect(() => {
     if (!trialStatus) return;
@@ -122,6 +126,13 @@ export default function ProfileScreen() {
 
   const getStatusLabel = (): { label: string; color: string; detail: string } => {
     if (!trialStatus) return { label: 'Loading...', color: '#666', detail: '' };
+    if (isAwaitingOTP(trialStatus)) {
+      return {
+        label: 'AWAITING OTP',
+        color: '#d97706',
+        detail: 'Payment received — enter the OTP from your email to activate',
+      };
+    }
     if (trialStatus.isSubscribed && !trialStatus.subscriptionExpired) {
       return {
         label: 'SUBSCRIBED',
@@ -162,7 +173,8 @@ export default function ProfileScreen() {
   }
 
   const status = getStatusLabel();
-  const showSubscribeButton = !trialStatus?.isSubscribed || trialStatus?.subscriptionExpired;
+  const awaitingOTP = isAwaitingOTP(trialStatus);
+  const showSubscribeButton = !awaitingOTP && (!trialStatus?.isSubscribed || trialStatus?.subscriptionExpired);
   const showCountdown = trialStatus?.canAccessApp;
   const endDateStr = trialStatus?.isSubscribed && trialStatus?.subscriptionEndDate
     ? trialStatus.subscriptionEndDate
@@ -254,6 +266,15 @@ export default function ProfileScreen() {
               <Text className="text-primary font-bold">
                 {trialStatus?.subscriptionExpired ? 'Renew — ₦1,000' : 'Subscribe — ₦1,000'}
               </Text>
+            </TouchableOpacity>
+          )}
+
+          {awaitingOTP && (
+            <TouchableOpacity
+              className="bg-white mt-4 py-3 rounded-lg items-center"
+              onPress={() => navigation.navigate('OTPValidation')}
+            >
+              <Text className="text-primary font-bold">Enter OTP</Text>
             </TouchableOpacity>
           )}
         </View>

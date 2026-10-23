@@ -14,6 +14,7 @@ import { databaseApi } from '../api';
 import { UserDatabase } from '../types';
 import MyDatabaseCard from '../components/MyDatabaseCard';
 import Logo from '../components/Logo';
+import AccessBanner from '../components/AccessBanner';
 import { toast } from '../utils/toast';
 
 export default function MyDatabasesScreen() {
@@ -105,6 +106,8 @@ export default function MyDatabasesScreen() {
         <Text className="text-2xl font-bold text-gray-800 mt-3 mb-1">My Databases</Text>
         <Text className="text-sm text-gray-600">{databases.length} databases</Text>
       </View>
+
+      <AccessBanner />
 
       <FlatList
         data={databases}

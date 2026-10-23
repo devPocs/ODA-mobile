@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { databaseApi, authApi } from '../api';
 import { DatabaseItem } from '../types';
 import DatabaseCard from '../components/DatabaseCard';
 import Logo from '../components/Logo';
+import AccessBanner from '../components/AccessBanner';
 import { toast } from '../utils/toast';
 
 const PAGE_LIMIT = 50;
@@ -34,6 +35,8 @@ export default function DatabasesScreen() {
   const isFocused = useIsFocused();
   const isInitialMount = useRef(true);
   const isInitialSearchMount = useRef(true);
+  // The first load fails while access is blocked; retry once it opens up
+  const initialLoadFailed = useRef(false);
 
   useEffect(() => {
     loadInitialData();
@@ -111,12 +114,18 @@ export default function DatabasesScreen() {
       if (userDbResponse.data?.databases) {
         setUserDatabases(userDbResponse.data.databases.map((db) => db.databaseId._id));
       }
+      initialLoadFailed.current = false;
     } catch (error) {
-      toast.error('Failed to load databases');
+      initialLoadFailed.current = true;
+      toast.error(error instanceof Error ? error.message : 'Failed to load databases');
     } finally {
       setLoading(false);
     }
   };
+
+  const handleAccessChange = useCallback((canAccess: boolean) => {
+    if (canAccess && initialLoadFailed.current) loadInitialData();
+  }, []);
 
   const goToPage = (pageToLoad: number) => {
     if (pageToLoad < 1 || pageToLoad > totalPages || pageToLoad === page || pageLoading) {
@@ -231,6 +240,8 @@ export default function DatabasesScreen() {
           <Text className="text-primary text-sm font-semibold">Logout</Text>
         </TouchableOpacity>
       </View>
+
+      <AccessBanner onAccessChange={handleAccessChange} />
 
       <View className="px-5 py-3 bg-white border-b border-gray-200">
         <TextInput

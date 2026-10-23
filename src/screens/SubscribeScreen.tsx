@@ -1,14 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Linking,
-  ScrollView,
-  AppState,
-} from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MainStackParamList } from '../navigation/types';
 import Logo from '../components/Logo';
@@ -28,37 +21,15 @@ const features = [
 export default function SubscribeScreen() {
   const navigation = useNavigation<NavigationProp>();
   const [initializing, setInitializing] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-  // Paystack opens in the external browser, so there's no deep link to catch
-  // the redirect — we track the pending transaction ourselves and verify it
-  // the moment the user switches back to the app.
-  const pendingTransactionId = useRef<string | null>(null);
+  const [checking, setChecking] = useState(false);
+  // A checkout the user started but that hasn't been confirmed yet
+  const [pendingTransactionId, setPendingTransactionId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState === 'active' && pendingTransactionId.current) {
-        const transactionId = pendingTransactionId.current;
-        pendingTransactionId.current = null;
-        verifyPayment(transactionId);
-      }
-    });
-    return () => subscription.remove();
-  }, []);
-
-  const verifyPayment = async (transactionId: string) => {
-    setVerifying(true);
-    try {
-      await paymentApi.verify(transactionId);
-      toast.success('Your OTP has been sent to your registered email.', 'Payment Successful!');
-      navigation.navigate('OTPValidation');
-    } catch {
-      // Not necessarily an error — the user may have just glanced at the app
-      // without finishing checkout yet. The webhook (or the "Enter OTP"
-      // fallback below, once the confirmation email arrives) still covers it.
-    } finally {
-      setVerifying(false);
-    }
-  };
+  useFocusEffect(
+    useCallback(() => {
+      paymentApi.getPendingTransactionId().then(setPendingTransactionId).catch(() => {});
+    }, [])
+  );
 
   const handlePay = async () => {
     setInitializing(true);
@@ -69,18 +40,28 @@ export default function SubscribeScreen() {
         toast.error('Payment could not be started. Please try again.');
         return;
       }
-
-      const supported = await Linking.canOpenURL(redirectUrl);
-      if (supported) {
-        pendingTransactionId.current = transactionId;
-        await Linking.openURL(redirectUrl);
-      } else {
-        toast.error('Unable to open the Paystack payment page');
-      }
+      // Checkout opens inside the app, which then confirms the payment itself
+      navigation.navigate('PaystackCheckout', { redirectUrl, transactionId });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to start payment');
     } finally {
       setInitializing(false);
+    }
+  };
+
+  const handleCheckStatus = async () => {
+    if (!pendingTransactionId) return;
+    setChecking(true);
+    try {
+      await paymentApi.confirm(pendingTransactionId, { timeoutMs: 10_000 });
+      setPendingTransactionId(null);
+      toast.success('Your OTP has been sent to your registered email.', 'Payment Successful!');
+      navigation.navigate('OTPValidation');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Could not confirm your payment');
+      setPendingTransactionId(await paymentApi.getPendingTransactionId());
+    } finally {
+      setChecking(false);
     }
   };
 
@@ -116,14 +97,26 @@ export default function SubscribeScreen() {
 
         {/* Pay Button */}
         <TouchableOpacity
-          className={`bg-primary py-4 rounded-xl items-center mb-4 ${(initializing || verifying) ? 'opacity-60' : ''}`}
+          className={`bg-primary py-4 rounded-xl items-center mb-4 ${(initializing || checking) ? 'opacity-60' : ''}`}
           onPress={handlePay}
-          disabled={initializing || verifying}
+          disabled={initializing || checking}
         >
           <Text className="text-white text-base font-bold">
-            {verifying ? 'Confirming payment...' : initializing ? 'Starting payment...' : 'Pay ₦1,000 with Paystack'}
+            {initializing ? 'Starting payment...' : 'Pay ₦1,000 with Paystack'}
           </Text>
         </TouchableOpacity>
+
+        {pendingTransactionId && (
+          <TouchableOpacity
+            className={`border border-primary py-3 rounded-xl items-center mb-4 ${checking ? 'opacity-60' : ''}`}
+            onPress={handleCheckStatus}
+            disabled={checking || initializing}
+          >
+            <Text className="text-primary font-semibold">
+              {checking ? 'Checking payment...' : 'Paid already? Check payment status'}
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {/* Already paid section */}
         <View className="bg-white rounded-xl p-5 items-center">

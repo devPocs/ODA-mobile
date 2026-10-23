@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MainStackParamList } from './types';
 import { MainTabs } from './MainTabs';
 import SubscribeScreen from '../screens/SubscribeScreen';
+import PaystackCheckoutScreen from '../screens/PaystackCheckoutScreen';
 import OTPValidationScreen from '../screens/OTPValidationScreen';
 
 const Stack = createNativeStackNavigator<MainStackParamList>();
@@ -12,6 +13,7 @@ export function MainStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Tabs" component={MainTabs} />
       <Stack.Screen name="Subscribe" component={SubscribeScreen} />
+      <Stack.Screen name="PaystackCheckout" component={PaystackCheckoutScreen} />
       <Stack.Screen name="OTPValidation" component={OTPValidationScreen} />
     </Stack.Navigator>
   );

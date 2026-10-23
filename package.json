@@ -3,7 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "android": "react-native run-android",
+    "android": "react-native run-android --mode liveDebug",
+    "android:test": "react-native run-android --mode stagingDebug",
+    "build:android:live": "cd android && ./gradlew bundleLiveRelease",
+    "build:android:test": "cd android && ./gradlew assembleStagingRelease",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
@@ -23,6 +26,7 @@
     "react-native-screens": "^4.19.0",
     "react-native-toast-message": "^2.4.0",
     "react-native-vector-icons": "^10.3.0",
+    "react-native-webview": "^14.0.1",
     "tailwindcss": "^3.4.19",
     "zod": "3.25.76"
   },

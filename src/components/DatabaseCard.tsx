@@ -30,8 +30,10 @@ export default function DatabaseCard({ database, onAddPress, onVisitPress, isAdd
       className="bg-white rounded-xl p-3 mb-4 shadow-sm border border-gray-100 mx-1"
       style={{ width: cardWidth, minHeight: 150 }}
     >
-      {/* Content wrapper with flex-1 to push button down */}
-      <View className="flex-1">
+      {/* flex-grow (not flex-1) pushes the button down without shrinking the
+          content below its natural height — flex-1 sets basis 0, which let long
+          titles/categories overflow underneath the button */}
+      <View className="flex-grow">
         <View className="flex-row gap-3">
           {/* Left: Logo */}
           <View className="w-16 h-16 flex-shrink-0">
@@ -54,7 +56,9 @@ export default function DatabaseCard({ database, onAddPress, onVisitPress, isAdd
               {database.name}
             </Text>
             {database.category && (
-              <Text className="text-[10px] text-primary mb-1 uppercase">{database.category}</Text>
+              <Text className="text-[10px] text-primary mb-1 uppercase" numberOfLines={1}>
+                {database.category}
+              </Text>
             )}
             {database.description && (
               <Text className="text-[10px] text-gray-500 leading-[14px]" numberOfLines={2}>

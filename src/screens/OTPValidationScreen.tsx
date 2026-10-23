@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { authApi } from '../api';
+import { authApi, paymentApi } from '../api';
 import { MainStackParamList } from '../navigation/types';
 import Logo from '../components/Logo';
 import { toast } from '../utils/toast';
@@ -23,6 +23,19 @@ export default function OTPValidationScreen() {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [validated, setValidated] = useState(false);
+  const [resending, setResending] = useState(false);
+
+  const handleResend = async () => {
+    setResending(true);
+    try {
+      await paymentApi.resendOTP();
+      toast.success('A new OTP has been sent to your email.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Could not resend the OTP');
+    } finally {
+      setResending(false);
+    }
+  };
 
   const handleValidate = async () => {
     if (!otp || otp.length !== 6) {
@@ -92,9 +105,16 @@ export default function OTPValidationScreen() {
               placeholderTextColor="#9CA3AF"
               placeholder="000000"
               value={otp}
+              // No maxLength: it truncates a paste before onChangeText runs, so a
+              // code copied from the email with its surrounding whitespace or
+              // "One-Time Code" label lost its digits. Digits are kept here instead.
               onChangeText={(t) => setOtp(t.replace(/\D/g, '').slice(0, 6))}
               keyboardType="number-pad"
-              maxLength={6}
+              textContentType="oneTimeCode"
+              autoComplete="one-time-code"
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleValidate}
               editable={!loading}
             />
           </View>
@@ -109,8 +129,14 @@ export default function OTPValidationScreen() {
             </Text>
           </TouchableOpacity>
 
-          <Text className="text-center text-xs text-gray-400 mt-6">
-            Didn't get the OTP? Go back and check that your payment was completed, then check your email inbox (including spam folder).
+          <TouchableOpacity className="items-center mt-6" onPress={handleResend} disabled={resending || loading}>
+            <Text className={`text-primary font-semibold ${resending ? 'opacity-60' : ''}`}>
+              {resending ? 'Sending...' : 'Resend OTP'}
+            </Text>
+          </TouchableOpacity>
+
+          <Text className="text-center text-xs text-gray-400 mt-4">
+            Didn't get the OTP? Check your email inbox (including spam), or resend it above. If your payment hasn't been confirmed yet, go back and check its status.
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
