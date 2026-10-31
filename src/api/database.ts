@@ -3,6 +3,7 @@ import {
   DatabaseItem,
   UserDatabase,
   DatabaseRequest,
+  DatabaseCredentials,
   RequestDatabaseData,
   PaginationMeta,
 } from '../types';
@@ -35,13 +36,27 @@ export const databaseApi = {
     return api.get<DatabaseRequest[]>('/api/databases/pending');
   },
 
-  // Select/add a database to user's list
-  async selectDatabase(databaseId: string) {
-    return api.post('/api/databases/user/databases/select', { databaseId });
+  // Select/add a database to user's list, optionally saving its login (the
+  // API encrypts it)
+  async selectDatabase(databaseId: string, credentials?: DatabaseCredentials) {
+    return api.post('/api/databases/user/databases/select', { databaseId, ...credentials });
   },
 
   // Remove database from user's list
   async removeUserDatabase(databaseId: string) {
     return api.delete(`/api/databases/user/databases/${databaseId}`);
+  },
+
+  // Saved login for one of the user's databases (by UserDatabase id)
+  async getDatabaseCredentials(userDatabaseId: string) {
+    return api.get<DatabaseCredentials>(`/api/databases/user/databases/${userDatabaseId}/credentials`);
+  },
+
+  async updateDatabaseCredentials(userDatabaseId: string, credentials: DatabaseCredentials) {
+    return api.put(`/api/databases/user/databases/${userDatabaseId}/credentials`, credentials);
+  },
+
+  async removeDatabaseCredentials(userDatabaseId: string) {
+    return api.delete(`/api/databases/user/databases/${userDatabaseId}/credentials`);
   },
 };

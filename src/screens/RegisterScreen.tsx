@@ -16,6 +16,7 @@ import { authApi, institutionsApi } from '../api';
 import { AuthStackParamList } from '../navigation/types';
 import { Institution } from '../types';
 import Logo from '../components/Logo';
+import PasswordInput from '../components/PasswordInput';
 import InstitutionPicker from '../components/InstitutionPicker';
 import { toast } from '../utils/toast';
 
@@ -23,14 +24,21 @@ type NavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Register'>;
 
 // Mirrors the API's registerSchema (auth.validator.ts) so the app rejects
 // the same inputs before ever making the request, with the same messages.
-const registerSchema = z.object({
-  firstName: z.string().trim().min(2, 'First name must be at least 2 characters long'),
-  lastName: z.string().trim().min(2, 'Last name must be at least 2 characters long'),
-  email: z.string().trim().email({ message: 'Please provide a valid email address' }),
-  phone: z.string().trim().min(10, 'Phone number must be at least 10 characters long'),
-  institution: z.string().trim().min(2, 'Please select your institution'),
-  password: z.string().min(6, 'Password must be at least 6 characters long'),
-});
+// confirmPassword is app-only, as on the web register page.
+const registerSchema = z
+  .object({
+    firstName: z.string().trim().min(2, 'First name must be at least 2 characters long'),
+    lastName: z.string().trim().min(2, 'Last name must be at least 2 characters long'),
+    email: z.string().trim().email({ message: 'Please provide a valid email address' }),
+    phone: z.string().trim().min(10, 'Phone number must be at least 10 characters long'),
+    institution: z.string().trim().min(2, 'Please select your institution'),
+    password: z.string().min(6, 'Password must be at least 6 characters long'),
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
 type FieldErrors = Partial<Record<keyof z.infer<typeof registerSchema>, string>>;
 
@@ -42,6 +50,7 @@ export default function RegisterScreen() {
   const [phone, setPhone] = useState('');
   const [institution, setInstitution] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [institutionsLoading, setInstitutionsLoading] = useState(true);
@@ -67,6 +76,7 @@ export default function RegisterScreen() {
       phone,
       institution,
       password,
+      confirmPassword,
     });
 
     if (!result.success) {
@@ -83,12 +93,15 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      await authApi.register(result.data);
-      toast.success(
-        'A verification email has been sent to your inbox. Please verify your email before logging in.',
-        'Account Created!'
-      );
-      navigation.navigate('Login');
+      await authApi.register({
+        firstName: result.data.firstName,
+        lastName: result.data.lastName,
+        email: result.data.email,
+        phone: result.data.phone,
+        institution: result.data.institution,
+        password: result.data.password,
+      });
+      navigation.replace('VerifyEmail', { email: result.data.email });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'An error occurred', 'Registration Failed');
     } finally {
@@ -203,7 +216,7 @@ export default function RegisterScreen() {
 
             <View className="mb-5">
               <Text className="text-sm font-semibold text-gray-800 mb-2">Password</Text>
-              <TextInput
+              <PasswordInput
                 className={`border rounded-lg p-3 text-base bg-gray-50 text-gray-800 ${fieldErrors.password ? 'border-red-500' : 'border-gray-300'}`}
                 placeholderTextColor="#9CA3AF"
                 placeholder="Create a password (min 6 characters)"
@@ -212,11 +225,28 @@ export default function RegisterScreen() {
                   setPassword(v);
                   setFieldErrors((prev) => ({ ...prev, password: undefined }));
                 }}
-                secureTextEntry
                 editable={!loading}
               />
               {fieldErrors.password && (
                 <Text className="text-red-500 text-xs mt-1">{fieldErrors.password}</Text>
+              )}
+            </View>
+
+            <View className="mb-5">
+              <Text className="text-sm font-semibold text-gray-800 mb-2">Confirm Password</Text>
+              <PasswordInput
+                className={`border rounded-lg p-3 text-base bg-gray-50 text-gray-800 ${fieldErrors.confirmPassword ? 'border-red-500' : 'border-gray-300'}`}
+                placeholderTextColor="#9CA3AF"
+                placeholder="Re-enter your password"
+                value={confirmPassword}
+                onChangeText={(v) => {
+                  setConfirmPassword(v);
+                  setFieldErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+                }}
+                editable={!loading}
+              />
+              {fieldErrors.confirmPassword && (
+                <Text className="text-red-500 text-xs mt-1">{fieldErrors.confirmPassword}</Text>
               )}
             </View>
 

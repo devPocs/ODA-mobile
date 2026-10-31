@@ -98,8 +98,14 @@ export interface UserDatabase {
     category?: string;
     description?: string;
   };
+  hasCredentials?: boolean;
   createdAt: string;
   lastAccessed: string;
+}
+
+export interface DatabaseCredentials {
+  username: string;
+  password: string;
 }
 
 export interface DatabaseRequest {

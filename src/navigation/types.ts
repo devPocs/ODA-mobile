@@ -2,9 +2,10 @@ import { NavigatorScreenParams } from '@react-navigation/native';
 
 // Auth Stack
 export type AuthStackParamList = {
-  Login: undefined;
+  Login: { email?: string } | undefined;
   Register: undefined;
   ForgotPassword: undefined;
+  VerifyEmail: { email: string };
 };
 
 // Main Bottom Tabs

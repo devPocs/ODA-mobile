@@ -9,10 +9,12 @@ import {
   Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { useIsFocused } from '@react-navigation/native';
 import { databaseApi } from '../api';
-import { UserDatabase } from '../types';
+import { UserDatabase, DatabaseCredentials } from '../types';
 import MyDatabaseCard from '../components/MyDatabaseCard';
+import CredentialsSheet from '../components/CredentialsSheet';
 import Logo from '../components/Logo';
 import AccessBanner from '../components/AccessBanner';
 import { toast } from '../utils/toast';
@@ -21,6 +23,10 @@ export default function MyDatabasesScreen() {
   const [databases, setDatabases] = useState<UserDatabase[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // The database whose login sheet is open, and its saved login once fetched
+  const [managing, setManaging] = useState<UserDatabase | null>(null);
+  const [savedLogin, setSavedLogin] = useState<DatabaseCredentials | undefined>();
+  const [loadingLogin, setLoadingLogin] = useState(false);
   const isFocused = useIsFocused();
 
   useEffect(() => {
@@ -73,16 +79,77 @@ export default function MyDatabasesScreen() {
     ]);
   };
 
-  const handleOpenDatabase = async (url: string) => {
+  const handleOpenDatabase = async (database: UserDatabase) => {
+    const url = database.databaseId.url;
     try {
       const supported = await Linking.canOpenURL(url);
-      if (supported) {
-        await Linking.openURL(url);
-      } else {
+      if (!supported) {
         toast.error('Cannot open this URL');
+        return;
       }
+      // Copy the saved password first, as the web app does, so it's ready to
+      // paste on the database's login page
+      if (database.hasCredentials) {
+        try {
+          const response = await databaseApi.getDatabaseCredentials(database._id);
+          if (response.data?.password) {
+            Clipboard.setString(response.data.password);
+            toast.success(
+              response.data.username ? `Username: ${response.data.username}` : 'Paste it on the login page',
+              'Password copied'
+            );
+          }
+        } catch {
+          // Open the database anyway; "Saved login" explains a failed load
+        }
+      }
+      await Linking.openURL(url);
     } catch (error) {
       toast.error('Failed to open database');
+    }
+  };
+
+  const setHasCredentials = (id: string, hasCredentials: boolean) =>
+    setDatabases((prev) => prev.map((db) => (db._id === id ? { ...db, hasCredentials } : db)));
+
+  const handleManageLogin = async (database: UserDatabase) => {
+    setManaging(database);
+    setSavedLogin(undefined);
+    if (!database.hasCredentials) return;
+    setLoadingLogin(true);
+    try {
+      const response = await databaseApi.getDatabaseCredentials(database._id);
+      setSavedLogin(response.data);
+    } catch (error) {
+      // 409: saved under an old key and cleared by the API; ask for it again
+      setHasCredentials(database._id, false);
+      toast.error(error instanceof Error ? error.message : 'Could not load your saved login');
+    } finally {
+      setLoadingLogin(false);
+    }
+  };
+
+  const handleSaveLogin = async (credentials?: DatabaseCredentials) => {
+    if (!managing || !credentials) return;
+    try {
+      await databaseApi.updateDatabaseCredentials(managing._id, credentials);
+      setHasCredentials(managing._id, true);
+      setManaging(null);
+      toast.success('Login saved');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to save login');
+    }
+  };
+
+  const handleRemoveLogin = async () => {
+    if (!managing) return;
+    try {
+      await databaseApi.removeDatabaseCredentials(managing._id);
+      setHasCredentials(managing._id, false);
+      setManaging(null);
+      toast.success('Saved login removed');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to remove saved login');
     }
   };
 
@@ -117,6 +184,7 @@ export default function MyDatabasesScreen() {
             database={item}
             onRemovePress={handleRemoveDatabase}
             onOpenPress={handleOpenDatabase}
+            onLoginPress={handleManageLogin}
           />
         )}
         contentContainerStyle={{ padding: 14, flexGrow: 1 }}
@@ -139,6 +207,17 @@ export default function MyDatabasesScreen() {
             </Text>
           </View>
         }
+      />
+
+      <CredentialsSheet
+        visible={!!managing}
+        databaseName={managing?.databaseId.name ?? ''}
+        mode="manage"
+        initial={savedLogin}
+        loadingInitial={loadingLogin}
+        onSubmit={handleSaveLogin}
+        onRemove={managing?.hasCredentials ? handleRemoveLogin : undefined}
+        onClose={() => setManaging(null)}
       />
     </SafeAreaView>
   );

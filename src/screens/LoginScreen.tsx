@@ -9,20 +9,21 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { authApi } from '../api';
 import { AuthStackParamList } from '../navigation/types';
 import Logo from '../components/Logo';
+import PasswordInput from '../components/PasswordInput';
 import { toast } from '../utils/toast';
 
 type NavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
 export default function LoginScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const [email, setEmail] = useState('');
+  const route = useRoute<RouteProp<AuthStackParamList, 'Login'>>();
+  const [email, setEmail] = useState(route.params?.email ?? '');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [emailNotVerified, setEmailNotVerified] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -117,23 +118,14 @@ export default function LoginScreen() {
                   <Text className="text-sm text-primary font-medium">Forgot Password?</Text>
                 </TouchableOpacity>
               </View>
-              <View className="relative">
-                <TextInput
-                  className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50 text-gray-800 pr-12"
-                  placeholderTextColor="#9CA3AF"
-                  placeholder="Enter password"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                  editable={!loading}
-                />
-                <TouchableOpacity
-                  className="absolute right-3 top-3"
-                  onPress={() => setShowPassword(!showPassword)}
-                >
-                  <Text className="text-gray-500 text-sm">{showPassword ? 'Hide' : 'Show'}</Text>
-                </TouchableOpacity>
-              </View>
+              <PasswordInput
+                className="border border-gray-300 rounded-lg p-3 text-base bg-gray-50 text-gray-800"
+                placeholderTextColor="#9CA3AF"
+                placeholder="Enter password"
+                value={password}
+                onChangeText={setPassword}
+                editable={!loading}
+              />
             </View>
 
             {emailNotVerified && (

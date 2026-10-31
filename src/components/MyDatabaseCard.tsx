@@ -11,13 +11,19 @@ import { UserDatabase } from '../types';
 interface MyDatabaseCardProps {
   database: UserDatabase;
   onRemovePress: (database: UserDatabase) => void;
-  onOpenPress: (url: string) => void;
+  onOpenPress: (database: UserDatabase) => void;
+  onLoginPress: (database: UserDatabase) => void;
 }
 
 const { width: screenWidth } = Dimensions.get('window');
 const cardWidth = (screenWidth - 28 - 8) / 2; // (screen - padding - gap) / 2 columns
 
-export default function MyDatabaseCard({ database, onRemovePress, onOpenPress }: MyDatabaseCardProps) {
+export default function MyDatabaseCard({
+  database,
+  onRemovePress,
+  onOpenPress,
+  onLoginPress,
+}: MyDatabaseCardProps) {
   return (
     <View
       className="bg-white rounded-xl p-3 mb-4 shadow-sm border border-gray-100 mx-1"
@@ -66,7 +72,7 @@ export default function MyDatabaseCard({ database, onRemovePress, onOpenPress }:
       <View className="flex-row gap-2 mt-3">
         <TouchableOpacity
           className="flex-1 bg-primary py-1.5 rounded-full items-center"
-          onPress={() => onOpenPress(database.databaseId.url)}
+          onPress={() => onOpenPress(database)}
         >
           <Text className="text-[10px] font-semibold text-white">Open</Text>
         </TouchableOpacity>
@@ -78,6 +84,15 @@ export default function MyDatabaseCard({ database, onRemovePress, onOpenPress }:
           <Text className="text-[10px] font-semibold text-primary">Remove</Text>
         </TouchableOpacity>
       </View>
+
+      <TouchableOpacity
+        className="mt-2 py-1.5 rounded-full items-center bg-gray-100"
+        onPress={() => onLoginPress(database)}
+      >
+        <Text className="text-[10px] font-semibold text-gray-700">
+          {database.hasCredentials ? 'Saved login' : 'Save login'}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }

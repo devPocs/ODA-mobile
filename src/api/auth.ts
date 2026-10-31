@@ -10,13 +10,10 @@ import {
 } from '../types';
 
 export const authApi = {
+  // Doesn't keep the token the API returns: storing it would sign the user in
+  // (RootNavigator watches for it) before they've verified their email
   async register(data: RegisterData) {
-    const response = await api.post<AuthResponse>('/api/auth/register', data);
-    if (response.data) {
-      await AsyncStorage.setItem('token', response.data.token);
-      await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
-    }
-    return response;
+    return api.post<AuthResponse>('/api/auth/register', data);
   },
 
   async login(data: LoginData) {

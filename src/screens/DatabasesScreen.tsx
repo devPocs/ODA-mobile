@@ -13,8 +13,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 import { databaseApi, authApi } from '../api';
-import { DatabaseItem } from '../types';
+import { DatabaseItem, DatabaseCredentials } from '../types';
 import DatabaseCard from '../components/DatabaseCard';
+import CredentialsSheet from '../components/CredentialsSheet';
 import Logo from '../components/Logo';
 import AccessBanner from '../components/AccessBanner';
 import { toast } from '../utils/toast';
@@ -32,6 +33,8 @@ export default function DatabasesScreen() {
   const [totalPages, setTotalPages] = useState(1);
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
+  // The database whose "Add" sheet is open
+  const [adding, setAdding] = useState<DatabaseItem | null>(null);
   const isFocused = useIsFocused();
   const isInitialMount = useRef(true);
   const isInitialSearchMount = useRef(true);
@@ -167,22 +170,29 @@ export default function DatabasesScreen() {
     }
   };
 
-  const handleAddDatabase = async (database: DatabaseItem) => {
+  const handleAddDatabase = (database: DatabaseItem) => {
     if (userDatabases.includes(database._id)) {
       toast.info('Database already added to your list');
       return;
     }
+    setAdding(database);
+  };
 
+  const confirmAddDatabase = async (credentials?: DatabaseCredentials) => {
+    if (!adding) return;
+    const database = adding;
     try {
       console.log('[Databases] Adding database:', database.name, database._id);
-      const response = await databaseApi.selectDatabase(database._id);
-      console.log('[Databases] Add database API response:', JSON.stringify(response, null, 2));
+      await databaseApi.selectDatabase(database._id, credentials);
 
       // Update local state
-      setUserDatabases([...userDatabases, database._id]);
-      console.log('[Databases] Updated userDatabases state. Database added successfully');
-
-      toast.success(`'${database.name}' has been added to your databases!`);
+      setUserDatabases((prev) => [...prev, database._id]);
+      setAdding(null);
+      toast.success(
+        credentials
+          ? `'${database.name}' added with your saved login`
+          : `'${database.name}' has been added to your databases!`
+      );
     } catch (error) {
       console.error('[Databases] Failed to add database:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to add database');
@@ -331,6 +341,14 @@ export default function DatabasesScreen() {
           </TouchableOpacity>
         </View>
       )}
+
+      <CredentialsSheet
+        visible={!!adding}
+        databaseName={adding?.name ?? ''}
+        mode="add"
+        onSubmit={confirmAddDatabase}
+        onClose={() => setAdding(null)}
+      />
     </SafeAreaView>
   );
 }

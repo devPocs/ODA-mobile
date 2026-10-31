@@ -6,7 +6,6 @@ import {
   Alert,
   TouchableOpacity,
   ScrollView,
-  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -15,6 +14,7 @@ import { authApi } from '../api';
 import { UserProfile, TrialStatus } from '../types';
 import { MainStackParamList } from '../navigation/types';
 import Logo from '../components/Logo';
+import PasswordInput from '../components/PasswordInput';
 import { isAwaitingOTP } from '../components/AccessBanner';
 import { toast } from '../utils/toast';
 
@@ -31,7 +31,6 @@ export default function ProfileScreen() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPasswords, setShowPasswords] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
 
   // Reload on focus so the status is current after paying or entering the OTP
@@ -281,50 +280,40 @@ export default function ProfileScreen() {
 
         {/* Change Password */}
         <View className="bg-white mx-4 mb-4 p-5 rounded-xl">
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-base font-bold text-gray-800">Change Password</Text>
-            <TouchableOpacity onPress={() => setShowPasswords(!showPasswords)}>
-              <Text className="text-sm text-primary font-medium">
-                {showPasswords ? 'Hide' : 'Show'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <Text className="text-base font-bold text-gray-800 mb-4">Change Password</Text>
 
           <View className="mb-3">
             <Text className="text-xs text-gray-500 mb-1">Current Password</Text>
-            <TextInput
+            <PasswordInput
               className="border border-gray-200 rounded-lg p-3 text-sm bg-gray-50 text-gray-800"
               placeholderTextColor="#9CA3AF"
               placeholder="Enter current password"
               value={currentPassword}
               onChangeText={setCurrentPassword}
-              secureTextEntry={!showPasswords}
               editable={!changingPassword}
             />
           </View>
 
           <View className="mb-3">
             <Text className="text-xs text-gray-500 mb-1">New Password</Text>
-            <TextInput
+            <PasswordInput
               className="border border-gray-200 rounded-lg p-3 text-sm bg-gray-50 text-gray-800"
               placeholderTextColor="#9CA3AF"
               placeholder="Enter new password"
               value={newPassword}
               onChangeText={setNewPassword}
-              secureTextEntry={!showPasswords}
               editable={!changingPassword}
             />
           </View>
 
           <View className="mb-4">
             <Text className="text-xs text-gray-500 mb-1">Confirm New Password</Text>
-            <TextInput
+            <PasswordInput
               className="border border-gray-200 rounded-lg p-3 text-sm bg-gray-50 text-gray-800"
               placeholderTextColor="#9CA3AF"
               placeholder="Confirm new password"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              secureTextEntry={!showPasswords}
               editable={!changingPassword}
             />
           </View>
